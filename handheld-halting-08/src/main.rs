@@ -12,6 +12,10 @@ fn main() -> Result<(), std::io::Error> {
         let modified_instruction = modify_instruction(instructions_modified[j]);
         instructions_modified[j] = &modified_instruction;
         println!("From {} to {}", old_instruction, modified_instruction);
+        if old_instruction == modified_instruction {
+            println!("Didn't modify, skiping.");
+            continue;
+        }
 
         let (success, accumulator) = evaluate_program(instructions_modified);
         if success {
@@ -26,9 +30,9 @@ fn main() -> Result<(), std::io::Error> {
 fn modify_instruction(instruction: &str) -> String {
     let (instruction, value) = instruction.split_at(instruction.find(' ').unwrap());
     match instruction {
-        "acc" => format!("{} {}", instruction, value),
-        "jmp" => format!("nop {}", value),
-        "nop" => format!("jmp {}", value),
+        "acc" => format!("{} {}", instruction, value.trim()),
+        "jmp" => format!("nop {}", value.trim()),
+        "nop" => format!("jmp {}", value.trim()),
         _ => format!("nop 1")
     }
 }
