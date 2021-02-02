@@ -18,9 +18,10 @@ enum Instruction {
     Forward(i64),
 }
 
+
+
 impl From<i64> for Direction {
     fn from(degree: i64) -> Self {
-        println!("DEGREE? {}", degree);
         match degree {
             0 => Direction::North,
             90 => Direction::West,
@@ -63,6 +64,10 @@ struct Coordinates {
     y: i64,
 }
 
+trait Follow {
+    fn follow(&mut self, instruction: &Instruction);
+}
+
 struct Ship {
     coord: Coordinates,
     direction: Direction,
@@ -76,6 +81,13 @@ impl Ship {
         }
     }
 
+
+    fn get_manhattan_distance_from_start(&self) -> i64 {
+        self.coord.x.abs() + self.coord.y.abs()
+    }
+}
+
+impl Follow for Ship {
     fn follow(&mut self, instruction: &Instruction) {
         match instruction {
             Instruction::North(value) => self.coord.y += value,
@@ -87,13 +99,42 @@ impl Ship {
             Instruction::Forward(value) => self.follow(&self.direction.to_instruction(*value)),
         }
     }
+}
 
-    fn get_manhattan_distance_from_start(&self) -> i64 {
-        self.coord.x.abs() + self.coord.y.abs()
+fn part_1(instructions: &Vec<Instruction>) {
+    let mut ship = Ship::new();
+
+    instructions.iter().for_each(|instr| ship.follow(instr));
+
+    println!("What is the Manhattan distance between that location and the ship's starting position? Answer: {}.", ship.get_manhattan_distance_from_start());
+}
+
+fn parse_instruction(line: &str) -> Instruction {
+    let (instruction, value) = line.split_at(1);
+    let value: i64 = value.parse().unwrap();
+    match instruction {
+        "N" => Instruction::North(value),
+        "S" => Instruction::South(value),
+        "E" => Instruction::East(value),
+        "W" => Instruction::West(value),
+        "L" => Instruction::RotateLeft(value),
+        "R" => Instruction::RotateRight(value),
+        "F" => Instruction::Forward(value),
+        _ => panic!("Invalid parse"),
     }
 }
 
-fn main() {}
+fn main() -> Result<(), std::io::Error> {
+    let contents = std::fs::read_to_string("input.txt")?;
+    let instructions: Vec<Instruction> = contents
+        .lines()
+        .filter(|line| !line.is_empty())
+        .map(|line| parse_instruction(line))
+        .collect();
+
+    part_1(&instructions);
+    Ok(())
+}
 
 #[cfg(test)]
 mod tests {
@@ -125,5 +166,4 @@ mod tests {
         assert_eq!(-8, ship.coord.y);
         assert_eq!(25, ship.get_manhattan_distance_from_start());
     }
-
 }
